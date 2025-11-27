@@ -22,8 +22,28 @@ class BookingsManager {
         });
 
         // Modal de confirmation
-        document.getElementById('cancelAction').addEventListener('click', () => this.hideConfirmationModal());
-        document.getElementById('confirmAction').addEventListener('click', () => this.executeAction());
+        const cancelActionBtn = document.getElementById('cancelAction');
+        const confirmActionBtn = document.getElementById('confirmAction');
+        const modalOverlay = document.querySelector('#confirmationModal .modal-overlay');
+
+        if (cancelActionBtn) {
+            cancelActionBtn.addEventListener('click', () => this.hideConfirmationModal());
+        }
+
+        if (confirmActionBtn) {
+            confirmActionBtn.addEventListener('click', () => this.executeAction());
+        }
+
+        if (modalOverlay) {
+            modalOverlay.addEventListener('click', () => this.hideConfirmationModal());
+        }
+
+        // Fermeture avec Echap
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                this.hideConfirmationModal();
+            }
+        });
     }
 
     async loadBookings() {
@@ -37,22 +57,36 @@ class BookingsManager {
 
         try {
             const token = localStorage.getItem('token');
+            console.log('🔑 Token pour réservations:', token ? 'Présent' : 'Manquant');
+
+            if (!token) {
+                throw new Error('Utilisateur non connecté');
+            }
+
             const response = await fetch('/api/bookings/my-bookings', {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
             });
 
+            console.log('📡 Réponse réservations:', response.status);
+
             if (response.ok) {
                 const bookings = await response.json();
+                console.log(`✅ ${bookings.length} réservations chargées`);
                 this.displayBookings(bookings);
                 this.updateStats(bookings);
             } else {
-                throw new Error('Erreur lors du chargement des réservations');
+                const error = await response.json();
+                throw new Error(error.message || 'Erreur lors du chargement des réservations');
             }
         } catch (error) {
             console.error('❌ Erreur chargement réservations:', error);
             this.showNotification('Erreur: ' + error.message, 'error');
+
+            // Afficher l'état vide en cas d'erreur
+            if (emptyState) emptyState.style.display = 'block';
+            if (bookingsList) bookingsList.style.display = 'none';
         } finally {
             if (loadingState) loadingState.style.display = 'none';
         }
@@ -69,6 +103,8 @@ class BookingsManager {
             ? bookings
             : bookings.filter(booking => booking.status === this.currentFilter);
 
+        console.log(`📊 Affichage de ${filteredBookings.length} réservations (filtre: ${this.currentFilter})`);
+
         if (filteredBookings.length === 0) {
             bookingsList.style.display = 'none';
             emptyState.style.display = 'block';
@@ -78,11 +114,15 @@ class BookingsManager {
         bookingsList.style.display = 'block';
         emptyState.style.display = 'none';
 
-        bookingsList.innerHTML = filteredBookings.map(booking => `
+        bookingsList.innerHTML = filteredBookings.map(booking => {
+            const isOwner = this.isUserOwner(booking);
+            console.log(`📋 Réservation ${booking._id} - Statut: ${booking.status} - Est propriétaire: ${isOwner}`);
+
+            return `
             <div class="booking-card ${booking.status}">
                 <div class="booking-header">
                     <div class="booking-info">
-                        <h3>${booking.item.title}</h3>
+                        <h3>${booking.item?.title || 'Objet non trouvé'}</h3>
                         <div class="booking-meta">
                             <span class="booking-status ${booking.status}">
                                 ${this.getStatusLabel(booking.status)}
@@ -90,22 +130,23 @@ class BookingsManager {
                             <span class="booking-date">
                                 ${new Date(booking.dates.startDate).toLocaleDateString('fr-FR')} 
                                 - ${new Date(booking.dates.endDate).toLocaleDateString('fr-FR')}
+                                (${booking.dates.totalDays} jour${booking.dates.totalDays > 1 ? 's' : ''})
                             </span>
                         </div>
                     </div>
                     <div class="booking-price">
-                        ${booking.pricing.totalAmount} MAD
+                        ${booking.pricing?.totalAmount || 0} MAD
                     </div>
                 </div>
 
                 <div class="booking-details">
                     <div class="booking-party">
                         <div class="party-member">
-                            <strong>${this.isUserOwner(booking) ? 'Locataire' : 'Propriétaire'}:</strong>
-                            <span>${this.isUserOwner(booking) ?
-                `${booking.renter.firstName} ${booking.renter.lastName}` :
-                `${booking.owner.firstName} ${booking.owner.lastName}`
-            }</span>
+                            <strong>${isOwner ? 'Locataire' : 'Propriétaire'}:</strong>
+                            <span>${isOwner ?
+                    `${booking.renter?.firstName || 'Inconnu'} ${booking.renter?.lastName || ''}` :
+                    `${booking.owner?.firstName || 'Inconnu'} ${booking.owner?.lastName || ''}`
+                }</span>
                         </div>
                         <div class="party-contact">
                             <button class="btn-secondary btn-sm" onclick="bookingsManager.contactParty('${booking._id}')">
@@ -119,26 +160,32 @@ class BookingsManager {
                     </div>
                 </div>
             </div>
-        `).join('');
+            `;
+        }).join('');
+
+        // Réattacher les event listeners après le rendu
+        this.attachActionListeners();
     }
 
     renderBookingActions(booking) {
         const isOwner = this.isUserOwner(booking);
 
+        console.log(`🎯 Rendu actions pour réservation ${booking._id} - Statut: ${booking.status} - Propriétaire: ${isOwner}`);
+
         switch (booking.status) {
             case 'pending':
                 if (isOwner) {
                     return `
-                        <button class="btn-success btn-sm" onclick="bookingsManager.showConfirmationModal('accept', '${booking._id}')">
+                        <button class="btn-success btn-sm accept-btn" data-booking-id="${booking._id}">
                             ✅ Accepter
                         </button>
-                        <button class="btn-danger btn-sm" onclick="bookingsManager.showConfirmationModal('reject', '${booking._id}')">
+                        <button class="btn-danger btn-sm reject-btn" data-booking-id="${booking._id}">
                             ❌ Refuser
                         </button>
                     `;
                 } else {
                     return `
-                        <button class="btn-danger btn-sm" onclick="bookingsManager.showConfirmationModal('cancel', '${booking._id}')">
+                        <button class="btn-danger btn-sm cancel-btn" data-booking-id="${booking._id}">
                             🚫 Annuler
                         </button>
                     `;
@@ -146,11 +193,11 @@ class BookingsManager {
 
             case 'confirmed':
                 return `
-                    <button class="btn-primary btn-sm" onclick="bookingsManager.viewBookingDetails('${booking._id}')">
+                    <button class="btn-primary btn-sm details-btn" data-booking-id="${booking._id}">
                         📋 Détails
                     </button>
                     ${!isOwner ? `
-                        <button class="btn-danger btn-sm" onclick="bookingsManager.showConfirmationModal('cancel', '${booking._id}')">
+                        <button class="btn-danger btn-sm cancel-btn" data-booking-id="${booking._id}">
                             🚫 Annuler
                         </button>
                     ` : ''}
@@ -158,18 +205,18 @@ class BookingsManager {
 
             case 'active':
                 return `
-                    <button class="btn-primary btn-sm" onclick="bookingsManager.viewBookingDetails('${booking._id}')">
+                    <button class="btn-primary btn-sm details-btn" data-booking-id="${booking._id}">
                         📋 Suivi
                     </button>
                 `;
 
             case 'completed':
                 return `
-                    <button class="btn-primary btn-sm" onclick="bookingsManager.viewBookingDetails('${booking._id}')">
+                    <button class="btn-primary btn-sm details-btn" data-booking-id="${booking._id}">
                         📋 Voir
                     </button>
                     ${!booking.review ? `
-                        <button class="btn-secondary btn-sm" onclick="bookingsManager.leaveReview('${booking._id}')">
+                        <button class="btn-secondary btn-sm review-btn" data-booking-id="${booking._id}">
                             ⭐ Noter
                         </button>
                     ` : ''}
@@ -177,32 +224,83 @@ class BookingsManager {
 
             default:
                 return `
-                    <button class="btn-primary btn-sm" onclick="bookingsManager.viewBookingDetails('${booking._id}')">
+                    <button class="btn-primary btn-sm details-btn" data-booking-id="${booking._id}">
                         📋 Détails
                     </button>
                 `;
         }
     }
 
+    attachActionListeners() {
+        // Accepter
+        document.querySelectorAll('.accept-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const bookingId = e.target.dataset.bookingId;
+                this.showConfirmationModal('accept', bookingId);
+            });
+        });
+
+        // Refuser
+        document.querySelectorAll('.reject-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const bookingId = e.target.dataset.bookingId;
+                this.showConfirmationModal('reject', bookingId);
+            });
+        });
+
+        // Annuler
+        document.querySelectorAll('.cancel-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const bookingId = e.target.dataset.bookingId;
+                this.showConfirmationModal('cancel', bookingId);
+            });
+        });
+
+        // Détails
+        document.querySelectorAll('.details-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const bookingId = e.target.dataset.bookingId;
+                this.viewBookingDetails(bookingId);
+            });
+        });
+
+        // Noter
+        document.querySelectorAll('.review-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const bookingId = e.target.dataset.bookingId;
+                this.leaveReview(bookingId);
+            });
+        });
+    }
+
     isUserOwner(booking) {
-        const user = JSON.parse(localStorage.getItem('user'));
-        return booking.owner._id === user.id;
+        try {
+            const user = JSON.parse(localStorage.getItem('user'));
+            if (!user || !user.id) return false;
+
+            return booking.owner && booking.owner._id === user.id;
+        } catch (error) {
+            console.error('Erreur vérification propriétaire:', error);
+            return false;
+        }
     }
 
     getStatusLabel(status) {
         const labels = {
-            'pending': 'En attente',
-            'confirmed': 'Confirmée',
-            'active': 'En cours',
-            'completed': 'Terminée',
-            'cancelled': 'Annulée',
-            'rejected': 'Refusée'
+            'pending': '⏳ En attente',
+            'confirmed': '✅ Confirmée',
+            'active': '🚗 En cours',
+            'completed': '🏁 Terminée',
+            'cancelled': '❌ Annulée',
+            'rejected': '🚫 Refusée'
         };
         return labels[status] || status;
     }
 
     changeFilter(status) {
         this.currentFilter = status;
+
+        console.log(`🔍 Changement de filtre: ${status}`);
 
         // Mettre à jour les filtres actifs
         document.querySelectorAll('.filter-chip').forEach(chip => {
@@ -220,12 +318,19 @@ class BookingsManager {
         // Calculer les revenus (pour le propriétaire)
         const earnings = bookings
             .filter(b => this.isUserOwner(b) && ['completed', 'active'].includes(b.status))
-            .reduce((sum, b) => sum + b.pricing.totalPrice, 0);
+            .reduce((sum, b) => sum + (b.pricing?.totalPrice || 0), 0);
 
-        document.getElementById('pendingCount').textContent = pendingCount;
-        document.getElementById('confirmedCount').textContent = confirmedCount;
-        document.getElementById('activeCount').textContent = activeCount;
-        document.getElementById('earningsCount').textContent = `${earnings} MAD`;
+        const pendingCountEl = document.getElementById('pendingCount');
+        const confirmedCountEl = document.getElementById('confirmedCount');
+        const activeCountEl = document.getElementById('activeCount');
+        const earningsCountEl = document.getElementById('earningsCount');
+
+        if (pendingCountEl) pendingCountEl.textContent = pendingCount;
+        if (confirmedCountEl) confirmedCountEl.textContent = confirmedCount;
+        if (activeCountEl) activeCountEl.textContent = activeCount;
+        if (earningsCountEl) earningsCountEl.textContent = `${earnings} MAD`;
+
+        console.log(`📈 Stats mises à jour: ${pendingCount} en attente, ${confirmedCount} confirmées, ${activeCount} en cours, ${earnings} MAD de revenus`);
     }
 
     showConfirmationModal(action, bookingId) {
@@ -236,14 +341,16 @@ class BookingsManager {
         const title = document.getElementById('confirmationTitle');
         const message = document.getElementById('confirmationMessage');
 
+        console.log(`🎯 Affichage modal pour action: ${action} sur réservation: ${bookingId}`);
+
         const actions = {
             'accept': {
                 title: 'Accepter la réservation',
-                message: 'Êtes-vous sûr de vouloir accepter cette réservation ?'
+                message: 'Êtes-vous sûr de vouloir accepter cette réservation ? Le locataire sera notifié.'
             },
             'reject': {
                 title: 'Refuser la réservation',
-                message: 'Êtes-vous sûr de vouloir refuser cette réservation ?'
+                message: 'Êtes-vous sûr de vouloir refuser cette réservation ? Cette action est définitive.'
             },
             'cancel': {
                 title: 'Annuler la réservation',
@@ -254,7 +361,7 @@ class BookingsManager {
         title.textContent = actions[action]?.title || 'Confirmer l\'action';
         message.textContent = actions[action]?.message || 'Êtes-vous sûr de vouloir effectuer cette action ?';
 
-        modal.style.display = 'block';
+        modal.style.display = 'flex';
     }
 
     hideConfirmationModal() {
@@ -262,13 +369,23 @@ class BookingsManager {
         modal.style.display = 'none';
         this.currentAction = null;
         this.currentBookingId = null;
+        console.log('🚪 Modal de confirmation fermé');
     }
 
     async executeAction() {
-        if (!this.currentAction || !this.currentBookingId) return;
+        if (!this.currentAction || !this.currentBookingId) {
+            console.error('❌ Action ou ID de réservation manquant');
+            return;
+        }
+
+        console.log(`⚡ Exécution de l'action: ${this.currentAction} sur réservation: ${this.currentBookingId}`);
 
         try {
             const token = localStorage.getItem('token');
+            if (!token) {
+                throw new Error('Utilisateur non connecté');
+            }
+
             let url = `/api/bookings/${this.currentBookingId}`;
             let method = 'PUT';
 
@@ -282,7 +399,15 @@ class BookingsManager {
                 case 'cancel':
                     url += '/cancel';
                     break;
+                default:
+                    throw new Error('Action non reconnue');
             }
+
+            console.log(`📤 Requête: ${method} ${url}`);
+
+            const requestBody = this.currentAction === 'reject' ?
+                JSON.stringify({ reason: 'Raison non spécifiée' }) :
+                undefined;
 
             const response = await fetch(url, {
                 method: method,
@@ -290,18 +415,19 @@ class BookingsManager {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: this.currentAction === 'reject' ? JSON.stringify({
-                    reason: 'Raison non spécifiée'
-                }) : undefined
+                body: requestBody
             });
 
+            console.log('📡 Réponse reçue:', response.status);
+
             if (response.ok) {
-                this.showNotification('Action effectuée avec succès', 'success');
+                const result = await response.json();
+                this.showNotification(result.message || 'Action effectuée avec succès', 'success');
                 this.hideConfirmationModal();
                 this.loadBookings(); // Recharger la liste
             } else {
                 const error = await response.json();
-                throw new Error(error.message);
+                throw new Error(error.message || `Erreur ${response.status}`);
             }
         } catch (error) {
             console.error('❌ Erreur action réservation:', error);
@@ -311,17 +437,17 @@ class BookingsManager {
     }
 
     viewBookingDetails(bookingId) {
-        // TODO: Implémenter la page de détails d'une réservation
-        this.showNotification('Page de détails bientôt disponible!', 'info');
+        console.log('📋 Affichage détails réservation:', bookingId);
+        this.showNotification('Page de détails de réservation bientôt disponible!', 'info');
     }
 
     contactParty(bookingId) {
-        // TODO: Implémenter le système de messagerie
-        this.showNotification('Messagerie bientôt disponible!', 'info');
+        console.log('📞 Contact réservation:', bookingId);
+        this.showNotification('Système de messagerie bientôt disponible!', 'info');
     }
 
     leaveReview(bookingId) {
-        // TODO: Implémenter le système de notation
+        console.log('⭐ Notation réservation:', bookingId);
         this.showNotification('Système de notation bientôt disponible!', 'info');
     }
 
@@ -333,13 +459,40 @@ class BookingsManager {
     }
 
     showNotification(message, type = 'info') {
+        console.log(`💬 Notification [${type}]:`, message);
+
         if (window.authManager && window.authManager.showNotification) {
             window.authManager.showNotification(message, type);
         } else {
-            alert(message);
+            // Fallback basique
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 1rem 1.5rem;
+                border-radius: 0.5rem;
+                color: white;
+                background: ${type === 'error' ? '#ef4444' : type === 'success' ? '#10b981' : '#3b82f6'};
+                z-index: 10000;
+                font-weight: 500;
+            `;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            setTimeout(() => notification.remove(), 5000);
         }
     }
 }
 
 // Initialisation
-const bookingsManager = new BookingsManager();
+document.addEventListener('DOMContentLoaded', function () {
+    const authManager = new AuthManager();
+
+    if (!authManager.isLoggedIn()) {
+        window.location.href = '/login';
+        return;
+    }
+
+    window.bookingsManager = new BookingsManager();
+});
