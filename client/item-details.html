@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Détails de l'objet - LocMaroc</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/items.css">
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <a href="/" style="text-decoration: none; color: inherit;">
+                    <h2>LocMaroc</h2>
+                </a>
+            </div>
+            <div class="nav-menu" id="navMenu">
+                <!-- Rempli par JavaScript -->
+            </div>
+        </div>
+    </nav>
+
+    <main class="item-details-container">
+        <div class="container">
+            <!-- Breadcrumb -->
+            <nav class="breadcrumb">
+                <a href="/">Accueil</a> >
+                <a href="#" id="categoryBreadcrumb">Catégorie</a> >
+                <span id="itemTitleBreadcrumb">Objet</span>
+            </nav>
+
+            <div class="item-details-content">
+                <!-- Galerie d'images -->
+                <div class="item-gallery">
+                    <div class="main-image">
+                        <img id="mainImage" src="" alt="Image principale">
+                    </div>
+                    <div class="image-thumbnails" id="imageThumbnails">
+                        <!-- Généré par JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Informations principales -->
+                <div class="item-info">
+                    <div class="item-header">
+                        <h1 id="itemTitle">Titre de l'objet</h1>
+                        <div class="item-condition" id="itemCondition">Bon état</div>
+                    </div>
+
+                    <div class="item-location">
+                        <span class="location-icon">📍</span>
+                        <span id="itemLocation">Casablanca</span>
+                    </div>
+
+                    <div class="item-price-section">
+                        <div class="price-display">
+                            <span class="price-amount" id="itemPrice">0</span>
+                            <span class="price-period">MAD / jour</span>
+                        </div>
+                        <div class="deposit-info">
+                            Caution: <span id="itemDeposit">0</span> MAD
+                        </div>
+                    </div>
+
+                    <!-- Widget de réservation -->
+                    <div class="booking-widget">
+                        <h3>Réserver cet objet</h3>
+
+                        <div class="date-selection">
+                            <div class="form-group">
+                                <label for="startDate">Date de début</label>
+                                <input type="date" id="startDate" min="">
+                            </div>
+                            <div class="form-group">
+                                <label for="endDate">Date de fin</label>
+                                <input type="date" id="endDate" min="">
+                            </div>
+                        </div>
+
+                        <div class="booking-summary" id="bookingSummary" style="display: none;">
+                            <div class="summary-line">
+                                <span>Prix total:</span>
+                                <span id="totalPrice">0 MAD</span>
+                            </div>
+                            <div class="summary-line">
+                                <span>Frais de service (10%):</span>
+                                <span id="serviceFee">0 MAD</span>
+                            </div>
+                            <div class="summary-line total">
+                                <span>Total à payer:</span>
+                                <span id="totalAmount">0 MAD</span>
+                            </div>
+                        </div>
+
+                        <div class="booking-actions">
+                            <button class="btn-primary" id="requestBookingBtn" disabled>
+                                Demander la location
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Description et détails -->
+            <div class="item-details-sections">
+                <section class="details-section">
+                    <h3>Description</h3>
+                    <p id="itemDescription">Description de l'objet...</p>
+                </section>
+
+                <section class="details-section">
+                    <h3>Caractéristiques</h3>
+                    <div class="features-list" id="featuresList">
+                        <!-- Généré par JavaScript -->
+                    </div>
+                </section>
+
+                <section class="details-section">
+                    <h3>Spécifications</h3>
+                    <div class="specifications" id="specifications">
+                        <!-- Généré par JavaScript -->
+                    </div>
+                </section>
+
+                <!-- Informations du propriétaire -->
+                <section class="owner-section">
+                    <h3>Propriétaire</h3>
+                    <div class="owner-card">
+                        <div class="owner-avatar" id="ownerAvatar">U</div>
+                        <div class="owner-info">
+                            <h4 id="ownerName">Nom du propriétaire</h4>
+                            <div class="owner-stats">
+                                <span class="trust-score" id="ownerTrustScore">50%</span>
+                                <span class="member-since" id="memberSince">Membre depuis...</span>
+                            </div>
+                        </div>
+                        <button class="btn-secondary" id="contactOwnerBtn">
+                            Contacter
+                        </button>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <script src="/js/auth.js"></script>
+    <script src="/js/item-details.js"></script>
+</body>
+
+</html>

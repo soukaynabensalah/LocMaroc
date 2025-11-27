@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mon Profil - LocMaroc</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/auth.css">
+    <link rel="stylesheet" href="/css/items.css">
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <a href="/" style="text-decoration: none; color: inherit;">
+                    <h2>LocMaroc</h2>
+                </a>
+            </div>
+            <div class="nav-menu" id="navMenu">
+                <!-- Rempli par JavaScript -->
+            </div>
+        </div>
+    </nav>
+
+    <main class="profile-container">
+        <div class="profile-header">
+            <h1>Mon Profil</h1>
+            <p>Gérez vos informations personnelles</p>
+        </div>
+
+        <div class="profile-content">
+            <!-- Informations personnelles -->
+            <div class="profile-section">
+                <h2>Informations personnelles</h2>
+                <form id="profileForm" class="profile-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="firstName">Prénom *</label>
+                            <input type="text" id="firstName" name="firstName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="lastName">Nom *</label>
+                            <input type="text" id="lastName" name="lastName" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Email *</label>
+                        <input type="email" id="email" name="email" required readonly>
+                        <small class="form-help">L'email ne peut pas être modifié</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="phone">Téléphone *</label>
+                        <input type="tel" id="phone" name="phone" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="city">Ville</label>
+                        <input type="text" id="city" name="city" placeholder="Casablanca">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="address">Adresse</label>
+                        <textarea id="address" name="address" rows="3" placeholder="Votre adresse complète"></textarea>
+                    </div>
+
+                    <button type="submit" class="btn-primary" id="saveProfileBtn">
+                        <span class="btn-text">Enregistrer les modifications</span>
+                        <span class="btn-loading" style="display: none;">Enregistrement...</span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Changement de mot de passe -->
+            <div class="profile-section">
+                <h2>Changement de mot de passe</h2>
+                <form id="passwordForm" class="profile-form">
+                    <div class="form-group">
+                        <label for="currentPassword">Mot de passe actuel *</label>
+                        <input type="password" id="currentPassword" name="currentPassword" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="newPassword">Nouveau mot de passe *</label>
+                        <input type="password" id="newPassword" name="newPassword" required minlength="6">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="confirmPassword">Confirmer le nouveau mot de passe *</label>
+                        <input type="password" id="confirmPassword" name="confirmPassword" required>
+                    </div>
+
+                    <button type="submit" class="btn-primary" id="changePasswordBtn">
+                        <span class="btn-text">Changer le mot de passe</span>
+                        <span class="btn-loading" style="display: none;">Changement...</span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Statistiques -->
+            <div class="profile-section">
+                <h2>Mes statistiques</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Objets publiés</h3>
+                        <p class="stat-number" id="itemsCount">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Score de confiance</h3>
+                        <p class="stat-number" id="trustScore">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Membre depuis</h3>
+                        <p class="stat-text" id="joinDate">-</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="/js/auth.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const authManager = new AuthManager();
+
+            if (!authManager.isLoggedIn()) {
+                window.location.href = '/login';
+                return;
+            }
+
+            // Charger les données du profil
+            loadProfileData();
+
+            // Gestion des formulaires
+            setupFormHandlers();
+        });
+
+        async function loadProfileData() {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch('/api/auth/profile', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    populateProfileForm(data.user);
+                    updateStats(data.user);
+                } else {
+                    throw new Error('Erreur lors du chargement du profil');
+                }
+            } catch (error) {
+                showNotification('Erreur lors du chargement du profil', 'error');
+                console.error('Erreur:', error);
+            }
+        }
+
+        function populateProfileForm(user) {
+            document.getElementById('firstName').value = user.firstName || '';
+            document.getElementById('lastName').value = user.lastName || '';
+            document.getElementById('email').value = user.email || '';
+            document.getElementById('phone').value = user.phone || '';
+            document.getElementById('city').value = user.address?.city || '';
+            document.getElementById('address').value = user.address?.street || '';
+        }
+
+        function updateStats(user) {
+            document.getElementById('trustScore').textContent = user.trustScore || '50';
+
+            if (user.createdAt) {
+                const joinDate = new Date(user.createdAt).toLocaleDateString('fr-FR');
+                document.getElementById('joinDate').textContent = joinDate;
+            }
+
+            // Charger le nombre d'objets
+            loadUserItemsCount();
+        }
+
+        async function loadUserItemsCount() {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch('/api/items/user/my-items', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    const items = await response.json();
+                    document.getElementById('itemsCount').textContent = items.length;
+                }
+            } catch (error) {
+                console.error('Erreur chargement items:', error);
+            }
+        }
+
+        function setupFormHandlers() {
+            // Formulaire de profil
+            const profileForm = document.getElementById('profileForm');
+            profileForm.addEventListener('submit', handleProfileUpdate);
+
+            // Formulaire de mot de passe
+            const passwordForm = document.getElementById('passwordForm');
+            passwordForm.addEventListener('submit', handlePasswordChange);
+        }
+
+        async function handleProfileUpdate(e) {
+            e.preventDefault();
+
+            const formData = new FormData(e.target);
+            const data = {
+                firstName: formData.get('firstName'),
+                lastName: formData.get('lastName'),
+                phone: formData.get('phone'),
+                address: {
+                    city: formData.get('city'),
+                    street: formData.get('address')
+                }
+            };
+
+            try {
+                setLoadingState('saveProfileBtn', true);
+
+                const token = localStorage.getItem('token');
+                const response = await fetch('/api/users/profile', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showNotification('Profil mis à jour avec succès !', 'success');
+
+                    // Mettre à jour les données dans le localStorage
+                    const currentUser = JSON.parse(localStorage.getItem('user'));
+                    const updatedUser = { ...currentUser, ...data };
+                    localStorage.setItem('user', JSON.stringify(updatedUser));
+
+                    // Mettre à jour la navigation
+                    if (window.authManager) {
+                        window.authManager.updateNavigation();
+                    }
+                } else {
+                    throw new Error(result.message || 'Erreur lors de la mise à jour du profil');
+                }
+            } catch (error) {
+                showNotification(error.message, 'error');
+                console.error('Erreur mise à jour profil:', error);
+            } finally {
+                setLoadingState('saveProfileBtn', false);
+            }
+        }
+
+        async function handlePasswordChange(e) {
+            e.preventDefault();
+
+            const formData = new FormData(e.target);
+            const currentPassword = formData.get('currentPassword');
+            const newPassword = formData.get('newPassword');
+            const confirmPassword = formData.get('confirmPassword');
+
+            if (newPassword !== confirmPassword) {
+                showNotification('Les mots de passe ne correspondent pas', 'error');
+                return;
+            }
+
+            if (newPassword.length < 6) {
+                showNotification('Le mot de passe doit contenir au moins 6 caractères', 'error');
+                return;
+            }
+
+            try {
+                setLoadingState('changePasswordBtn', true);
+
+                const token = localStorage.getItem('token');
+                const response = await fetch('/api/users/change-password', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        currentPassword,
+                        newPassword
+                    })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showNotification('Mot de passe changé avec succès !', 'success');
+                    e.target.reset();
+                } else {
+                    throw new Error(result.message || 'Erreur lors du changement de mot de passe');
+                }
+            } catch (error) {
+                showNotification(error.message, 'error');
+                console.error('Erreur changement mot de passe:', error);
+            } finally {
+                setLoadingState('changePasswordBtn', false);
+            }
+        }
+
+        function setLoadingState(buttonId, isLoading) {
+            const button = document.getElementById(buttonId);
+            if (button) {
+                const btnText = button.querySelector('.btn-text');
+                const btnLoading = button.querySelector('.btn-loading');
+
+                if (isLoading) {
+                    btnText.style.display = 'none';
+                    btnLoading.style.display = 'inline';
+                    button.disabled = true;
+                } else {
+                    btnText.style.display = 'inline';
+                    btnLoading.style.display = 'none';
+                    button.disabled = false;
+                }
+            }
+        }
+
+        function showNotification(message, type = 'info') {
+            if (window.authManager) {
+                window.authManager.showNotification(message, type);
+            } else {
+                alert(message);
+            }
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mes Réservations - LocMaroc</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/auth.css">
+    <link rel="stylesheet" href="/css/items.css">
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <a href="/" style="text-decoration: none; color: inherit;">
+                    <h2>LocMaroc</h2>
+                </a>
+            </div>
+            <div class="nav-menu" id="navMenu">
+                <!-- Rempli par JavaScript -->
+            </div>
+        </div>
+    </nav>
+
+    <main class="bookings-container">
+        <div class="container">
+            <div class="page-header">
+                <h1>Mes Réservations</h1>
+                <div class="header-actions">
+                    <a href="/my-items.html" class="btn-secondary">Mes Objets</a>
+                    <a href="/" class="btn-primary">Rechercher</a>
+                </div>
+            </div>
+
+            <!-- Filtres -->
+            <div class="bookings-filters">
+                <button class="filter-chip active" data-status="all">Toutes</button>
+                <button class="filter-chip" data-status="pending">En attente</button>
+                <button class="filter-chip" data-status="confirmed">Confirmées</button>
+                <button class="filter-chip" data-status="active">En cours</button>
+                <button class="filter-chip" data-status="completed">Terminées</button>
+                <button class="filter-chip" data-status="cancelled">Annulées</button>
+            </div>
+
+            <!-- Statistiques -->
+            <div class="bookings-stats">
+                <div class="stat-card">
+                    <h3>En attente</h3>
+                    <p class="stat-number" id="pendingCount">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Confirmées</h3>
+                    <p class="stat-number" id="confirmedCount">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>En cours</h3>
+                    <p class="stat-number" id="activeCount">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Revenus</h3>
+                    <p class="stat-number" id="earningsCount">0 MAD</p>
+                </div>
+            </div>
+
+            <!-- Liste des réservations -->
+            <div class="bookings-list" id="bookingsList">
+                <!-- Généré par JavaScript -->
+            </div>
+
+            <div id="emptyBookings" class="empty-state" style="display: none;">
+                <div class="empty-icon">📅</div>
+                <h3>Aucune réservation</h3>
+                <p>Vous n'avez pas encore de réservations</p>
+                <a href="/" class="btn-primary">Rechercher des objets</a>
+            </div>
+
+            <div id="loadingBookings" class="loading-state">
+                <div class="spinner"></div>
+                <p>Chargement de vos réservations...</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal de confirmation -->
+    <div id="confirmationModal" class="modal" style="display: none;">
+        <div class="modal-overlay"></div>
+        <div class="modal-content confirmation-modal">
+            <h3 id="confirmationTitle">Confirmer l'action</h3>
+            <p id="confirmationMessage">Êtes-vous sûr de vouloir effectuer cette action ?</p>
+            <div class="modal-actions">
+                <button class="btn-secondary" id="cancelAction">Annuler</button>
+                <button class="btn-primary" id="confirmAction">Confirmer</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/auth.js"></script>
+    <script src="/js/bookings.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mes objets - LocMaroc</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/auth.css">
+    <link rel="stylesheet" href="/css/items.css">
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <a href="/" style="text-decoration: none; color: inherit;">
+                    <h2>LocMaroc</h2>
+                </a>
+            </div>
+            <div class="nav-menu" id="navMenu">
+                <!-- Rempli par JavaScript -->
+            </div>
+        </div>
+    </nav>
+
+    <main class="my-items-container">
+        <div class="page-header">
+            <h1>Mes objets</h1>
+            <a href="/add-item.html" class="btn-primary">➕ Ajouter un objet</a>
+        </div>
+
+        <div class="items-stats">
+            <div class="stat-card">
+                <h3>Objets actifs</h3>
+                <p class="stat-number" id="activeCount">0</p>
+            </div>
+            <div class="stat-card">
+                <h3>Total des vues</h3>
+                <p class="stat-number" id="totalViews">0</p>
+            </div>
+            <div class="stat-card">
+                <h3>Locations</h3>
+                <p class="stat-number" id="rentalCount">0</p>
+            </div>
+        </div>
+
+        <div class="items-filters">
+            <select id="statusFilter" class="filter-select">
+                <option value="all">Tous les objets</option>
+                <option value="active">Actifs</option>
+                <option value="inactive">Inactifs</option>
+                <option value="rented">En location</option>
+            </select>
+        </div>
+
+        <div id="itemsList" class="items-grid">
+            <!-- Les objets seront chargés ici -->
+        </div>
+
+        <div id="emptyState" class="empty-state" style="display: none;">
+            <div class="empty-icon">📦</div>
+            <h3>Aucun objet trouvé</h3>
+            <p>Commencez par ajouter votre premier objet à louer</p>
+            <a href="/add-item.html" class="btn-primary">Ajouter un objet</a>
+        </div>
+
+        <div id="loadingState" class="loading-state">
+            <div class="spinner"></div>
+            <p>Chargement de vos objets...</p>
+        </div>
+    </main>
+
+    <!-- Modal de confirmation de suppression -->
+    <div id="deleteModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h3>Confirmer la suppression</h3>
+            <p>Êtes-vous sûr de vouloir supprimer cet objet ? Cette action est irréversible.</p>
+            <div class="modal-actions">
+                <button class="btn-secondary" id="cancelDelete">Annuler</button>
+                <button class="btn-danger" id="confirmDelete">Supprimer</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/auth.js"></script>
+    <script src="/js/items.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const authManager = new AuthManager();
+
+            if (!authManager.isLoggedIn()) {
+                window.location.href = '/login';
+                return;
+            }
+
+            // Charger les objets de l'utilisateur
+            loadUserItems();
+
+            // Gestion des filtres
+            document.getElementById('statusFilter').addEventListener('change', loadUserItems);
+        });
+    </script>
+</body>
+
+</html>

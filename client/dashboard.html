@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tableau de bord - LocMaroc</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/auth.css">
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <a href="/" style="text-decoration: none; color: inherit;">
+                    <h2>LocMaroc</h2>
+                </a>
+            </div>
+            <div class="nav-menu" id="navMenu">
+                <!-- Rempli par JavaScript -->
+            </div>
+        </div>
+    </nav>
+
+    <main class="dashboard-container">
+        <div class="dashboard-header">
+            <h1>Tableau de bord</h1>
+            <p>Bienvenue dans votre espace personnel</p>
+        </div>
+
+        <div class="dashboard-stats">
+            <div class="stat-card">
+                <h3>Mes objets</h3>
+                <p class="stat-number">0</p>
+                <span>Objets en location</span>
+            </div>
+            <div class="stat-card">
+                <h3>Locations</h3>
+                <p class="stat-number">0</p>
+                <span>Locations actives</span>
+            </div>
+            <div class="stat-card">
+                <h3>Revenus</h3>
+                <p class="stat-number">0 MAD</p>
+                <span>Ce mois-ci</span>
+            </div>
+        </div>
+
+        <div class="dashboard-actions">
+            <a href="/add-item.html" class="action-btn primary">
+                ➕ Ajouter un objet
+            </a>
+            <a href="/my-items.html" class="action-btn secondary">
+                📦 Mes objets
+            </a>
+            <a href="/profile.html" class="action-btn secondary">
+                👤 Mon profil
+            </a>
+        </div>
+    </main>
+
+    <script src="/js/auth.js"></script>
+    <script>
+        // Vérifier si l'utilisateur est connecté
+        document.addEventListener('DOMContentLoaded', function () {
+            const authManager = new AuthManager();
+
+            if (!authManager.isLoggedIn()) {
+                window.location.href = '/login';
+                return;
+            }
+
+            // Charger les données du dashboard
+            loadDashboardData();
+        });
+
+        async function loadDashboardData() {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch('/api/auth/profile', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('Données utilisateur:', data);
+                } else {
+                    console.error('Erreur lors du chargement du profil');
+                }
+            } catch (error) {
+                console.error('Erreur:', error);
+            }
+        }
+    </script>
+</body>
+
+</html>

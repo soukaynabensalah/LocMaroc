@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modifier l'objet - LocMaroc</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/auth.css">
+    <link rel="stylesheet" href="/css/items.css">
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <a href="/" style="text-decoration: none; color: inherit;">
+                    <h2>LocMaroc</h2>
+                </a>
+            </div>
+            <div class="nav-menu" id="navMenu">
+                <!-- Rempli par JavaScript -->
+            </div>
+        </div>
+    </nav>
+
+    <main class="form-container">
+        <div class="form-card">
+            <h1>Modifier l'objet</h1>
+            <p class="form-subtitle">Modifiez les informations de votre objet</p>
+
+            <form id="itemForm" class="item-form">
+                <!-- Section Informations de base -->
+                <div class="form-section">
+                    <h2>Informations de base</h2>
+
+                    <div class="form-group">
+                        <label for="title">Titre de l'annonce *</label>
+                        <input type="text" id="title" name="title" required maxlength="100"
+                            placeholder="Ex: Perceuse visseuse sans fil Bosch">
+                        <span class="error-message" id="titleError"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="description">Description *</label>
+                        <textarea id="description" name="description" required maxlength="1000" rows="4"
+                            placeholder="Décrivez votre objet en détail..."></textarea>
+                        <span class="error-message" id="descriptionError"></span>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="category">Catégorie *</label>
+                            <select id="category" name="category" required>
+                                <option value="">Choisir une catégorie</option>
+                                <option value="outils">Outils</option>
+                                <option value="high-tech">High-Tech</option>
+                                <option value="loisirs">Loisirs</option>
+                                <option value="maison">Maison</option>
+                                <option value="sport">Sport</option>
+                                <option value="vehicules">Véhicules</option>
+                                <option value="autres">Autres</option>
+                            </select>
+                            <span class="error-message" id="categoryError"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="condition">État *</label>
+                            <select id="condition" name="condition" required>
+                                <option value="">Choisir l'état</option>
+                                <option value="neuf">Neuf</option>
+                                <option value="tres-bon-etat">Très bon état</option>
+                                <option value="bon-etat">Bon état</option>
+                                <option value="etat-correct">État correct</option>
+                            </select>
+                            <span class="error-message" id="conditionError"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section Prix -->
+                <div class="form-section">
+                    <h2>Prix et garantie</h2>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="pricePerDay">Prix par jour (MAD) *</label>
+                            <input type="number" id="pricePerDay" name="pricePerDay" required min="0" step="0.5"
+                                placeholder="50">
+                            <span class="error-message" id="pricePerDayError"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="deposit">Caution (MAD) *</label>
+                            <input type="number" id="deposit" name="deposit" required min="0" placeholder="200">
+                            <span class="error-message" id="depositError"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section Localisation -->
+                <div class="form-section">
+                    <h2>Localisation</h2>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="city">Ville *</label>
+                            <input type="text" id="city" name="city" required placeholder="Casablanca">
+                            <span class="error-message" id="cityError"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="address">Adresse *</label>
+                            <input type="text" id="address" name="address" required placeholder="123 Avenue Hassan II">
+                            <span class="error-message" id="addressError"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section Caractéristiques -->
+                <div class="form-section">
+                    <h2>Caractéristiques</h2>
+
+                    <div class="form-group">
+                        <label>Caractéristiques (optionnel)</label>
+                        <div class="features-container">
+                            <input type="text" id="featureInput" placeholder="Ajouter une caractéristique">
+                            <button type="button" id="addFeatureBtn" class="add-feature-btn">+</button>
+                        </div>
+                        <div id="featuresList" class="features-list"></div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="brand">Marque (optionnel)</label>
+                            <input type="text" id="brand" name="brand" placeholder="Bosch">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="model">Modèle (optionnel)</label>
+                            <input type="text" id="model" name="model" placeholder="GSR 120-LI">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section Statut -->
+                <div class="form-section">
+                    <h2>Statut de l'annonce</h2>
+
+                    <div class="form-group">
+                        <label for="status">Statut *</label>
+                        <select id="status" name="status" required>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                        <span class="error-message" id="statusError"></span>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary"
+                        onclick="window.location.href='/my-items'">Annuler</button>
+                    <button type="submit" class="btn-primary" id="submitBtn">
+                        <span class="btn-text">Mettre à jour l'annonce</span>
+                        <span class="btn-loading" style="display: none;">Mise à jour...</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <script src="/js/auth.js"></script>
+    <script src="/js/items.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const authManager = new AuthManager();
+
+            if (!authManager.isLoggedIn()) {
+                window.location.href = '/login';
+                return;
+            }
+
+            // Charger les données de l'objet à modifier
+            loadItemData();
+        });
+
+        async function loadItemData() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const itemId = urlParams.get('id');
+
+            if (!itemId) {
+                itemManager.showNotification('ID de l\'objet manquant', 'error');
+                window.location.href = '/my-items';
+                return;
+            }
+
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`/api/items/${itemId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    const item = await response.json();
+                    populateForm(item);
+                } else {
+                    throw new Error('Objet non trouvé');
+                }
+            } catch (error) {
+                itemManager.showNotification('Erreur lors du chargement de l\'objet', 'error');
+                console.error('Erreur:', error);
+                window.location.href = '/my-items';
+            }
+        }
+
+        function populateForm(item) {
+            // Remplir les champs du formulaire
+            document.getElementById('title').value = item.title || '';
+            document.getElementById('description').value = item.description || '';
+            document.getElementById('category').value = item.category || '';
+            document.getElementById('condition').value = item.condition || '';
+            document.getElementById('pricePerDay').value = item.pricePerDay || '';
+            document.getElementById('deposit').value = item.deposit || '';
+            document.getElementById('city').value = item.location?.city || '';
+            document.getElementById('address').value = item.location?.address || '';
+            document.getElementById('brand').value = item.specifications?.brand || '';
+            document.getElementById('model').value = item.specifications?.model || '';
+            document.getElementById('status').value = item.status || 'active';
+
+            // Remplir les caractéristiques
+            if (item.features && Array.isArray(item.features)) {
+                itemManager.features = [...item.features];
+                itemManager.updateFeaturesList();
+            }
+
+            // Mettre à jour le gestionnaire de formulaire pour l'édition
+            const form = document.getElementById('itemForm');
+            form.addEventListener('submit', (e) => handleItemUpdate(e, item._id));
+        }
+
+        async function handleItemUpdate(e, itemId) {
+            e.preventDefault();
+
+            const formData = new FormData(e.target);
+            const data = {
+                title: formData.get('title'),
+                description: formData.get('description'),
+                category: formData.get('category'),
+                condition: formData.get('condition'),
+                pricePerDay: parseFloat(formData.get('pricePerDay')),
+                deposit: parseFloat(formData.get('deposit')),
+                status: formData.get('status'),
+                location: {
+                    address: formData.get('address'),
+                    city: formData.get('city')
+                },
+                features: itemManager.features,
+                specifications: {
+                    brand: formData.get('brand'),
+                    model: formData.get('model')
+                }
+            };
+
+            if (!itemManager.validateItem(data)) return;
+
+            try {
+                itemManager.setLoadingState('submitBtn', true);
+
+                const token = localStorage.getItem('token');
+                const response = await fetch(`/api/items/${itemId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    itemManager.showNotification('Objet mis à jour avec succès !', 'success');
+                    setTimeout(() => {
+                        window.location.href = '/my-items';
+                    }, 1500);
+                } else {
+                    throw new Error(result.message || 'Erreur lors de la mise à jour de l\'objet');
+                }
+            } catch (error) {
+                itemManager.showNotification(error.message, 'error');
+                console.error('Erreur mise à jour item:', error);
+            } finally {
+                itemManager.setLoadingState('submitBtn', false);
+            }
+        }
+    </script>
+</body>
+
+</html>
